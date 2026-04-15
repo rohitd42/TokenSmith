@@ -1,6 +1,6 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import Any, Dict
+from typing import Any, Dict, List
 from copy import deepcopy
 
 from src.config import RAGConfig
@@ -26,9 +26,17 @@ class QueryPlanner(ABC):
         Subclasses must override this to return an updated RAGConfig.
         """
 
+    def expand_queries(self, query: str) -> List[str]:
+        """
+        Return the list of queries to run retrieval for. Default is the
+        original query unchanged; multi-query planners (e.g. multi-hop
+        decomposition) override this to return sub-questions.
+        """
+        return [query]
+
     # ---- helper for subclasses ----
     def _log_decision(self, new_cfg: RAGConfig) -> None:
-        base_dict = self.base_cfg.to_dict()
-        new_dict = new_cfg.to_dict()
+        base_dict = self.base_cfg.get_config_state()
+        new_dict = new_cfg.get_config_state()
         # TO DO - fix this
         # get_logger().log_planner(self.name, base_dict, new_dict)
