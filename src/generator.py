@@ -114,6 +114,7 @@ def get_llama_model(model_path: str, n_ctx: int = 4096):
     if model_path not in _LLM_CACHE:
         try:
             _LLM_CACHE[model_path] = Llama(model_path=model_path,
+                                             seed=42,
                                        n_ctx=n_ctx,
                                        verbose=False,
                                        n_gpu_layers=-1,
@@ -121,6 +122,7 @@ def get_llama_model(model_path: str, n_ctx: int = 4096):
         except Exception as e:
             print(f"Error loading LLaMA model from {model_path} on GPU: {e}")
             _LLM_CACHE[model_path] = Llama(model_path=model_path,
+                                             seed=42,
                                        n_ctx=n_ctx,
                                        verbose=False)
 
@@ -154,14 +156,14 @@ def run_llama_cpp(prompt: str, model_path: str, max_tokens: int, temperature: fl
         stop=[ANSWER_END]
     )
 
-def answer(query: str, chunks, model_path: str, max_tokens: int = 300, system_prompt_mode: str = "tutor", temperature: float = 0.2):
+def answer(query: str, chunks, model_path: str, max_tokens: int = 300, system_prompt_mode: str = "tutor", temperature: float = 0.0):
     prompt = format_prompt(chunks, query, system_prompt_mode=system_prompt_mode)
     return stream_llama_cpp(prompt, model_path, max_tokens=max_tokens, temperature=temperature)
 
 def double_answer(query: str, chunks, model_path: str,
                   max_tokens: int = 300,
                   system_prompt_mode: str = "tutor",
-                  temperature: float = 0.2):
+                  temperature: float = 0.0):
 
     # ---- Pass 1 ----
     base_prompt = format_prompt(

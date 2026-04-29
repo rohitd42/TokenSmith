@@ -39,8 +39,11 @@ class MultiHopQueryPlanner(QueryPlanner):
     def name(self) -> str:
         return "MultiHopPlanner"
 
-    def __init__(self, base_cfg: RAGConfig):
+    def __init__(self, base_cfg: RAGConfig, max_subquestions: int = 3):
         super().__init__(base_cfg)
+        # RRF dilutes over too many retrieval sets — cap sub-question count
+        # so comparison queries don't get starved.
+        self.max_subquestions = max(1, int(max_subquestions))
         # Cache decompositions so plan() and expand_queries() don't call the
         # LLM twice for the same question within a single turn.
         self._decomposition_cache: dict[str, List[str]] = {}
@@ -75,6 +78,10 @@ class MultiHopQueryPlanner(QueryPlanner):
                 continue
             seen.add(key)
             subs.append(cleaned)
+
+        # Truncate post-hoc: the LLM frequently ignores the "at most N"
+        # instruction, so we enforce the cap on our side.
+        subs = subs[: self.max_subquestions]
 
         # If the LLM collapsed to nothing useful, fall back to the original.
         if not subs or (len(subs) == 1 and subs[0].lower() == query.lower()):

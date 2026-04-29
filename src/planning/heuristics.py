@@ -22,6 +22,12 @@ TODO: verify below assertions with data
 # All-caps 2-4 char tokens. Matches ACID, WAL, MVCC, RDBMS, SQL, etc.
 _ACRONYM_PATTERN = re.compile(r"\b[A-Z]{2,4}\b")
 
+# Explanatory triggers: "why ...", "how does/do/is/are ...", "what causes ...",
+# "explain ...". Anchored to the start of the lowercased query so that
+# unrelated queries that merely contain the word "explain" in the middle
+# don't get reclassified.
+_EXPLANATORY_PATTERN = re.compile(r"^(why|how\s+(does|do|is|are)|what\s+causes|explain)\b")
+
 
 class HeuristicQueryPlanner(QueryPlanner):
     @property
@@ -44,10 +50,10 @@ class HeuristicQueryPlanner(QueryPlanner):
             return "comparison"
         if any(x in q for x in ["what is", "define", "definition"]):
             return "definition"
-        if any(x in q for x in ["why", "explain", "because"]):
-            return "explanatory"
         if any(x in q for x in ["how to", "steps", "procedure", "algorithm"]):
             return "procedural"
+        if _EXPLANATORY_PATTERN.match(q) or "because" in q:
+            return "explanatory"
         return "other"
 
     def plan(self, query: str) -> RAGConfig:

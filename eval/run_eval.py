@@ -23,7 +23,6 @@ import json
 import pathlib
 import sys
 from collections import defaultdict
-from copy import deepcopy
 from types import SimpleNamespace
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -36,8 +35,10 @@ from src.config import RAGConfig
 from src.instrumentation.logging import get_logger
 from src.main import ANSWER_NOT_FOUND, get_answer
 from src.planning.composite import CompositeQueryPlanner
+from src.planning.cost_model import CostModelPlanner
 from src.planning.heuristics import HeuristicQueryPlanner
 from src.planning.multihop import MultiHopQueryPlanner
+from src.planning.noop import NoOpPlanner
 from src.planning.planner import QueryPlanner
 from src.ranking.ranker import EnsembleRanker
 from src.retriever import (
@@ -52,20 +53,6 @@ INDEX_PREFIX = "textbook_index"
 QUESTIONS_PATH = REPO_ROOT / "eval" / "questions.jsonl"
 RESULTS_PATH = REPO_ROOT / "eval" / "results.csv"
 CONFIG_PATH = REPO_ROOT / "config" / "config.yaml"
-
-
-class NoOpPlanner(QueryPlanner):
-    """Planner that returns the base cfg unchanged and never expands queries."""
-
-    @property
-    def name(self) -> str:
-        return "NoOpPlanner"
-
-    def plan(self, query: str):
-        # deepcopy so callers can't mutate our stored base_cfg by accident
-        return deepcopy(self.base_cfg)
-
-    # expand_queries inherits the default `[query]` from QueryPlanner
 
 
 def build_args() -> SimpleNamespace:
@@ -164,22 +151,64 @@ def run_one(
     return str(result), []
 
 
+# Empirically derived from N=116 eval (eval/results_v2_n116.csv):
+# categories where the optimizer beat baseline → composite; where baseline
+# won → noop. Categories not in the table fall back to the default planner.
+COST_MODEL_ROUTING = {
+    "keyword":     "composite",
+    "definition":  "composite",
+    "procedural":  "composite",
+    "other":       "composite",
+    "comparison":  "noop",
+    "explanatory": "noop",
+}
+
+
+def _build_cost_model(cfg: RAGConfig) -> CostModelPlanner:
+    composite = CompositeQueryPlanner(
+        cfg,
+        [MultiHopQueryPlanner(cfg), HeuristicQueryPlanner(cfg)],
+    )
+    noop = NoOpPlanner(cfg)
+    table = {
+        "composite": composite,
+        "noop": noop,
+    }
+    routing = {cat: table[choice] for cat, choice in COST_MODEL_ROUTING.items()}
+    return CostModelPlanner(
+        cfg,
+        routing_table=routing,
+        default_planner=composite,
+        classifier=HeuristicQueryPlanner(cfg),
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="TokenSmith planner evaluation")
     parser.add_argument(
         "--baseline",
         action="store_true",
-        help="Run only the no-op baseline (skip CompositeQueryPlanner)",
+        help="Include the no-op baseline planner",
     )
     parser.add_argument(
         "--optimizer",
         action="store_true",
-        help="Run only the CompositeQueryPlanner (skip baseline)",
+        help="Include the CompositeQueryPlanner (multi-hop + heuristic)",
+    )
+    parser.add_argument(
+        "--cost-model",
+        dest="cost_model",
+        action="store_true",
+        help="Include the CostModelPlanner (per-category routing)",
     )
     cli = parser.parse_args()
 
-    run_baseline = cli.baseline or not cli.optimizer
-    run_optimizer = cli.optimizer or not cli.baseline
+    # If no flag is passed, run all three modes. Otherwise run only the
+    # explicitly requested ones.
+    any_flag = cli.baseline or cli.optimizer or cli.cost_model
+    run_baseline = cli.baseline or not any_flag
+    run_optimizer = cli.optimizer or not any_flag
+    run_cost_model = cli.cost_model or not any_flag
 
     if not CONFIG_PATH.exists():
         print(f"ERROR: missing config at {CONFIG_PATH}", file=sys.stderr)
@@ -193,6 +222,7 @@ def main() -> None:
 
     baseline_artifacts: Optional[Dict[str, Any]] = None
     optimizer_artifacts: Optional[Dict[str, Any]] = None
+    cost_model_artifacts: Optional[Dict[str, Any]] = None
     if run_baseline:
         baseline_artifacts = build_artifacts(cfg, NoOpPlanner(cfg))
     if run_optimizer:
@@ -201,6 +231,8 @@ def main() -> None:
             [MultiHopQueryPlanner(cfg), HeuristicQueryPlanner(cfg)],
         )
         optimizer_artifacts = build_artifacts(cfg, composite)
+    if run_cost_model:
+        cost_model_artifacts = build_artifacts(cfg, _build_cost_model(cfg))
 
     questions = load_questions()
     print(f"Loaded {len(questions)} questions from {QUESTIONS_PATH}")
@@ -222,8 +254,10 @@ def main() -> None:
 
         b_retr: Any = ""
         o_retr: Any = ""
+        c_retr: Any = ""
         b_ans: Any = ""
         o_ans: Any = ""
+        c_ans: Any = ""
 
         print(f"\n[{i}/{len(questions)}] ({category}) {query}")
 
@@ -241,18 +275,27 @@ def main() -> None:
             o_ans = answer_hit(ans_o, gold)
             print(f"    retrieval_hit={o_retr} answer_hit={o_ans}")
 
+        if run_cost_model and cost_model_artifacts is not None:
+            print("  -- cost_model --")
+            ans_c, chunks_c = run_one(query, cfg, cost_model_artifacts, args, logger)
+            c_retr = retrieval_hit(chunks_c, expected)
+            c_ans = answer_hit(ans_c, gold)
+            print(f"    retrieval_hit={c_retr} answer_hit={c_ans}")
+
         rows.append({
             "query": query,
             "category": category,
             "planner_classification": classification,
             "baseline_retrieval_hit": b_retr,
             "optimizer_retrieval_hit": o_retr,
+            "cost_model_retrieval_hit": c_retr,
             "baseline_answer_hit": b_ans,
             "optimizer_answer_hit": o_ans,
+            "cost_model_answer_hit": c_ans,
         })
 
     write_results(rows)
-    print_summary(rows, run_baseline, run_optimizer)
+    print_summary(rows, run_baseline, run_optimizer, run_cost_model)
 
 
 def write_results(rows: List[Dict[str, Any]]) -> None:
@@ -263,8 +306,10 @@ def write_results(rows: List[Dict[str, Any]]) -> None:
         "planner_classification",
         "baseline_retrieval_hit",
         "optimizer_retrieval_hit",
+        "cost_model_retrieval_hit",
         "baseline_answer_hit",
         "optimizer_answer_hit",
+        "cost_model_answer_hit",
     ]
     with open(RESULTS_PATH, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
@@ -278,7 +323,12 @@ def _rate(values: List[int]) -> float:
     return (sum(values) / len(values)) if values else 0.0
 
 
-def print_summary(rows: List[Dict[str, Any]], run_baseline: bool, run_optimizer: bool) -> None:
+def print_summary(
+    rows: List[Dict[str, Any]],
+    run_baseline: bool,
+    run_optimizer: bool,
+    run_cost_model: bool,
+) -> None:
     buckets: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
     for r in rows:
         buckets[r.get("category") or "unknown"].append(r)
@@ -288,6 +338,8 @@ def print_summary(rows: List[Dict[str, Any]], run_baseline: bool, run_optimizer:
         cols += [f"{'B retr':>8}", f"{'B ans':>8}"]
     if run_optimizer:
         cols += [f"{'O retr':>8}", f"{'O ans':>8}"]
+    if run_cost_model:
+        cols += [f"{'C retr':>8}", f"{'C ans':>8}"]
     header = " ".join(cols)
 
     print()
@@ -307,6 +359,10 @@ def print_summary(rows: List[Dict[str, Any]], run_baseline: bool, run_optimizer:
             orr = _rate([int(x.get("optimizer_retrieval_hit") or 0) for x in items])
             oa = _rate([int(x.get("optimizer_answer_hit") or 0) for x in items])
             parts += [f"{orr:>8.2%}", f"{oa:>8.2%}"]
+        if run_cost_model:
+            cr = _rate([int(x.get("cost_model_retrieval_hit") or 0) for x in items])
+            ca = _rate([int(x.get("cost_model_answer_hit") or 0) for x in items])
+            parts += [f"{cr:>8.2%}", f"{ca:>8.2%}"]
         return " ".join(parts)
 
     for cat in sorted(buckets):

@@ -1,0 +1,37 @@
+query,category,planner_classification,baseline_retrieval_hit,optimizer_retrieval_hit,baseline_answer_hit,optimizer_answer_hit
+What is ACID?,keyword,keyword,1,1,1,1
+Explain WAL-based recovery,keyword,keyword,1,1,1,1
+How does MVCC work?,keyword,keyword,1,1,0,1
+What guarantees does BCNF provide?,keyword,keyword,1,1,1,0
+Describe the DBMS architecture,keyword,keyword,0,0,1,1
+What is DDL used for?,keyword,keyword,1,1,0,1
+What is SQL used for?,keyword,keyword,1,1,1,1
+What is RAID used for in storage?,keyword,keyword,1,1,1,1
+Compare clustered and non-clustered indexes,comparison,comparison,1,0,1,0
+What is the difference between optimistic and pessimistic concurrency control?,comparison,comparison,1,1,0,0
+Contrast primary keys with foreign keys,comparison,comparison,1,1,1,1
+Hash indexes versus tree-based indexes,comparison,comparison,1,1,1,1
+Compare strict and non-strict two-phase locking,comparison,comparison,1,1,1,1
+Difference between logical and physical data independence,comparison,comparison,1,1,1,1
+Shadow paging versus log-based recovery,comparison,comparison,1,1,1,1
+Compare lossless and lossy decomposition in normalization,comparison,comparison,1,1,1,1
+What is a transaction?,definition,definition,1,1,1,1
+Define a relation in the relational model,definition,definition,1,1,1,1
+What is serializability?,definition,definition,1,1,1,1
+Define a functional dependency,definition,definition,1,1,1,1
+What is a primary key?,definition,definition,1,1,1,1
+What is a foreign key?,definition,definition,1,1,1,1
+Define a candidate key,definition,definition,0,1,0,1
+What is a schedule in transaction processing?,definition,definition,1,1,1,1
+Why do we need transaction isolation?,explanatory,explanatory,1,1,1,1
+Explain how deadlocks arise in concurrent transactions,explanatory,explanatory,1,1,1,1
+Why is third normal form preferred over second normal form?,explanatory,explanatory,1,1,1,0
+Explain why B+ trees are preferred over binary search trees for disk storage,explanatory,explanatory,1,0,1,1
+Why does write-ahead logging ensure durability?,explanatory,explanatory,1,1,1,1
+Explain the role of the recovery manager,explanatory,explanatory,1,1,1,0
+Why is functional dependency important for normalization?,explanatory,explanatory,1,1,1,1
+Explain how bucket overflow is handled in static hashing,explanatory,explanatory,1,1,1,1
+How to perform database normalization step by step,procedural,procedural,1,1,1,1
+Steps to recover a database after a crash,procedural,procedural,1,1,1,1
+Describe the algorithm for two-phase locking,procedural,procedural,1,1,1,1
+How to build a B+ tree index from scratch,procedural,procedural,1,1,0,1

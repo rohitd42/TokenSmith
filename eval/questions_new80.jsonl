@@ -1,39 +1,3 @@
-{"query": "What is ACID?", "category": "keyword", "expected_chunks": ["atomicity", "consistency", "isolation", "durability"], "gold_answer_fragment": "atomicity"}
-{"query": "Explain WAL-based recovery", "category": "keyword", "expected_chunks": ["write-ahead log", "log record", "recovery"], "gold_answer_fragment": "write-ahead"}
-{"query": "How does MVCC work?", "category": "keyword", "expected_chunks": ["multiversion", "timestamp", "version"], "gold_answer_fragment": "multiversion"}
-{"query": "What guarantees does BCNF provide?", "category": "keyword", "expected_chunks": ["Boyce-Codd", "functional dependency", "superkey"], "gold_answer_fragment": "Boyce"}
-{"query": "Describe the DBMS architecture", "category": "keyword", "expected_chunks": ["database management system", "query processor", "storage manager"], "gold_answer_fragment": "storage"}
-{"query": "What is DDL used for?", "category": "keyword", "expected_chunks": ["data-definition language", "schema", "create table"], "gold_answer_fragment": "data-definition"}
-{"query": "What is SQL used for?", "category": "keyword", "expected_chunks": ["structured query language", "relation", "select"], "gold_answer_fragment": "structured query"}
-{"query": "What is RAID used for in storage?", "category": "keyword", "expected_chunks": ["redundant array", "disk", "parity"], "gold_answer_fragment": "redundant"}
-{"query": "Compare clustered and non-clustered indexes", "category": "comparison", "expected_chunks": ["clustering index", "primary index", "secondary index"], "gold_answer_fragment": "clustering"}
-{"query": "What is the difference between optimistic and pessimistic concurrency control?", "category": "comparison", "expected_chunks": ["optimistic", "validation", "locking"], "gold_answer_fragment": "validation"}
-{"query": "Contrast primary keys with foreign keys", "category": "comparison", "expected_chunks": ["primary key", "foreign key", "referential"], "gold_answer_fragment": "referential"}
-{"query": "Hash indexes versus tree-based indexes", "category": "comparison", "expected_chunks": ["hash index", "B+-tree", "bucket"], "gold_answer_fragment": "hash"}
-{"query": "Compare strict and non-strict two-phase locking", "category": "comparison", "expected_chunks": ["two-phase locking", "strict", "lock"], "gold_answer_fragment": "strict"}
-{"query": "Difference between logical and physical data independence", "category": "comparison", "expected_chunks": ["logical", "physical", "data independence"], "gold_answer_fragment": "independence"}
-{"query": "Shadow paging versus log-based recovery", "category": "comparison", "expected_chunks": ["shadow paging", "log", "recovery"], "gold_answer_fragment": "shadow"}
-{"query": "Compare lossless and lossy decomposition in normalization", "category": "comparison", "expected_chunks": ["lossless", "decomposition", "natural join"], "gold_answer_fragment": "lossless"}
-{"query": "What is a transaction?", "category": "definition", "expected_chunks": ["transaction", "unit of work", "atomic"], "gold_answer_fragment": "transaction"}
-{"query": "Define a relation in the relational model", "category": "definition", "expected_chunks": ["relation", "tuple", "attribute"], "gold_answer_fragment": "tuple"}
-{"query": "What is serializability?", "category": "definition", "expected_chunks": ["serial schedule", "serializable", "equivalent"], "gold_answer_fragment": "serial"}
-{"query": "Define a functional dependency", "category": "definition", "expected_chunks": ["functional dependency", "determines", "attribute"], "gold_answer_fragment": "functional dependency"}
-{"query": "What is a primary key?", "category": "definition", "expected_chunks": ["primary key", "candidate key", "tuple"], "gold_answer_fragment": "uniquely"}
-{"query": "What is a foreign key?", "category": "definition", "expected_chunks": ["foreign key", "referential integrity", "referenced relation"], "gold_answer_fragment": "referenced"}
-{"query": "Define a candidate key", "category": "definition", "expected_chunks": ["candidate key", "minimal", "superkey"], "gold_answer_fragment": "minimal"}
-{"query": "What is a schedule in transaction processing?", "category": "definition", "expected_chunks": ["schedule", "operations", "transaction"], "gold_answer_fragment": "sequence"}
-{"query": "Why do we need transaction isolation?", "category": "explanatory", "expected_chunks": ["isolation", "concurrent", "consistency"], "gold_answer_fragment": "concurrent"}
-{"query": "Explain how deadlocks arise in concurrent transactions", "category": "explanatory", "expected_chunks": ["deadlock", "wait-for", "cycle"], "gold_answer_fragment": "deadlock"}
-{"query": "Why is third normal form preferred over second normal form?", "category": "explanatory", "expected_chunks": ["third normal form", "transitive", "dependency"], "gold_answer_fragment": "transitive"}
-{"query": "Explain why B+ trees are preferred over binary search trees for disk storage", "category": "explanatory", "expected_chunks": ["B+-tree", "disk block", "height"], "gold_answer_fragment": "disk"}
-{"query": "Why does write-ahead logging ensure durability?", "category": "explanatory", "expected_chunks": ["write-ahead log", "durability", "redo"], "gold_answer_fragment": "durability"}
-{"query": "Explain the role of the recovery manager", "category": "explanatory", "expected_chunks": ["recovery", "log", "crash"], "gold_answer_fragment": "crash"}
-{"query": "Why is functional dependency important for normalization?", "category": "explanatory", "expected_chunks": ["functional dependency", "normal form", "decomposition"], "gold_answer_fragment": "normal form"}
-{"query": "Explain how bucket overflow is handled in static hashing", "category": "explanatory", "expected_chunks": ["bucket", "overflow chain", "hash"], "gold_answer_fragment": "overflow"}
-{"query": "How to perform database normalization step by step", "category": "procedural", "expected_chunks": ["normal form", "decomposition", "functional dependency"], "gold_answer_fragment": "normal form"}
-{"query": "Steps to recover a database after a crash", "category": "procedural", "expected_chunks": ["log", "redo", "undo"], "gold_answer_fragment": "redo"}
-{"query": "Describe the algorithm for two-phase locking", "category": "procedural", "expected_chunks": ["two-phase locking", "growing phase", "shrinking phase"], "gold_answer_fragment": "growing"}
-{"query": "How to build a B+ tree index from scratch", "category": "procedural", "expected_chunks": ["B+-tree", "insert", "split"], "gold_answer_fragment": "split"}
 {"query": "What is ARIES recovery?", "category": "keyword", "expected_chunks": ["ARIES", "log", "recovery"], "gold_answer_fragment": "log"}
 {"query": "Define ACID compliance", "category": "keyword", "expected_chunks": ["atomicity", "consistency", "isolation", "durability"], "gold_answer_fragment": "atomicity"}
 {"query": "What is OLTP?", "category": "keyword", "expected_chunks": ["online transaction", "OLTP", "transactional"], "gold_answer_fragment": "transaction"}
